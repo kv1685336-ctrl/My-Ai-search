@@ -1,0 +1,964 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI SEARCH</title>
+  <style>
+    
+:root {
+  color-scheme: dark;
+  font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --bg: #060a18;
+  --text: #f5f5ff;
+  --muted: #91a0c5;
+  --border: rgba(137, 153, 255, 0.23);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  min-height: 100%;
+  background: var(--bg);
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  overflow-x: hidden;
+  color: var(--text);
+  background:
+    radial-gradient(ellipse at 15% 5%, rgba(89,55,206,.2), transparent 32%),
+    radial-gradient(ellipse at 90% 25%, rgba(34,83,211,.16), transparent 30%),
+    radial-gradient(ellipse at 50% 90%, rgba(98,39,189,.13), transparent 34%),
+    var(--bg);
+}
+
+button,
+input {
+  font: inherit;
+}
+
+button {
+  -webkit-tap-highlight-color: transparent;
+}
+
+.app {
+  position: relative;
+  min-height: 100vh;
+  isolation: isolate;
+}
+
+
+
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  max-width: 1000px;
+  margin: 20px auto 0;
+  padding: 17px 23px;
+  border: 1px solid rgba(105,127,255,.4);
+  border-radius: 20px;
+  background: rgba(8,15,39,.7);
+  box-shadow:
+    0 0 30px rgba(70,83,255,.08),
+    inset 0 1px 0 rgba(255,255,255,.06);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--text);
+  font-size: 20px;
+  font-weight: 800;
+  letter-spacing: -.6px;
+}
+
+.brand-icon {
+  width: 42px;
+  height: 42px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(255,255,255,.25);
+  border-radius: 14px;
+  color: white;
+  font-size: 24px;
+  background: linear-gradient(135deg,#b15dff,#575eff 65%,#29cfff);
+  box-shadow:
+    0 0 22px rgba(124,90,255,.45),
+    inset 0 1px 0 rgba(255,255,255,.3);
+}
+
+.version {
+  padding: 7px 12px;
+  border: 1px solid rgba(169,113,255,.65);
+  border-radius: 30px;
+  color: #c6a8ff;
+  background: rgba(119,65,224,.12);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 1.4px;
+}
+
+
+.main-content {
+  position: relative;
+  width: 100%;
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 52px 24px 30px;
+}
+
+
+
+.hero {
+  margin-bottom: 35px;
+  text-align: center;
+}
+
+.hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  padding: 10px 14px;
+  border: 1px solid rgba(100,153,255,.37);
+  border-radius: 30px;
+  color: #9ce9ff;
+  background: rgba(24,65,131,.2);
+  box-shadow: 0 0 22px rgba(59,121,255,.1);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 1.1px;
+}
+
+.status-dot {
+  width: 7px;
+  height: 7px;
+  display: inline-block;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: #58f0c0;
+  box-shadow: 0 0 12px rgba(88,240,192,.8);
+}
+
+.hero h1 {
+  margin: 23px 0 15px;
+  font-size: clamp(32px,7vw,49px);
+  font-weight: 850;
+  line-height: 1.16;
+  letter-spacing: -1.7px;
+}
+
+.hero h1 span {
+  background: linear-gradient(100deg,#b16aff,#668dff,#57ddff);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.hero p {
+  max-width: 430px;
+  margin: 0 auto;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.85;
+}
+
+
+
+.search-card,
+.answer-card,
+.history-card {
+  position: relative;
+  margin-bottom: 19px;
+  padding: 24px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 21px;
+  background: linear-gradient(
+    140deg,
+    rgba(22,29,63,.82),
+    rgba(8,14,34,.92)
+  );
+  box-shadow:
+    0 18px 50px rgba(0,0,0,.24),
+    inset 0 1px 0 rgba(255,255,255,.055);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+}
+
+.search-card::before,
+.answer-card::before,
+.history-card::before {
+  position: absolute;
+  top: 0;
+  left: 12%;
+  right: 12%;
+  height: 1px;
+  content: "";
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(93,218,255,.7),
+    rgba(175,112,255,.8),
+    transparent
+  );
+  pointer-events: none;
+}
+
+
+.search-card label {
+  display: block;
+  margin-bottom: 13px;
+  color: #eceeff;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.input-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  min-width: 0;
+  padding: 0 14px;
+  border: 1px solid #394675;
+  border-radius: 15px;
+  background: rgba(5,11,29,.9);
+  box-shadow: inset 0 0 18px rgba(28,58,135,.08);
+  transition: border-color .25s, box-shadow .25s, background .25s;
+}
+
+.input-wrapper:focus-within {
+  border-color: #a27bff;
+  background: rgba(11,17,41,.98);
+  box-shadow:
+    0 0 0 3px rgba(135,98,255,.13),
+    0 0 25px rgba(108,78,255,.17),
+    inset 0 0 18px rgba(28,58,135,.12);
+}
+
+.search-icon {
+  flex-shrink: 0;
+  color: #a9a0ff;
+  font-size: 28px;
+  line-height: 1;
+}
+
+.input-wrapper input {
+  width: 100%;
+  min-width: 0;
+  padding: 17px 0;
+  border: 0;
+  outline: none;
+  color: var(--text);
+  background: transparent;
+  font-size: 14px;
+}
+
+.input-wrapper input::placeholder {
+  color: #7182b0;
+  opacity: 1;
+}
+
+
+
+.button-row {
+  display: flex;
+  gap: 11px;
+  margin-top: 14px;
+}
+
+.search-button,
+.clear-button {
+  min-height: 48px;
+  padding: 0 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  border-radius: 13px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 750;
+  transition: transform .2s, box-shadow .2s, background .2s;
+}
+
+.search-button {
+  flex: 1;
+  border: 1px solid rgba(170,183,255,.6);
+  color: white;
+  background: linear-gradient(105deg,#a84eff,#645bff 55%,#238bff);
+  box-shadow:
+    0 0 22px rgba(111,87,255,.25),
+    inset 0 1px 0 rgba(255,255,255,.25);
+}
+
+.search-button:hover {
+  transform: translateY(-2px);
+  box-shadow:
+    0 0 30px rgba(111,87,255,.4),
+    0 8px 24px rgba(20,83,255,.2);
+}
+
+.clear-button {
+  flex-shrink: 0;
+  border: 1px solid #3d4b83;
+  color: #c5d0f3;
+  background: rgba(19,29,65,.75);
+}
+
+.clear-button:hover {
+  border-color: #8276d8;
+  background: rgba(43,43,91,.8);
+}
+
+.search-button:active,
+.clear-button:active {
+  transform: scale(.98);
+}
+
+.search-button:focus-visible,
+.clear-button:focus-visible {
+  outline: 2px solid #b7a6ff;
+  outline-offset: 3px;
+}
+
+
+.quick-examples {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 20px;
+}
+
+.quick-examples > span:first-child {
+  margin-right: 3px;
+  color: #8999cf;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 1.4px;
+}
+
+.example-chip {
+  padding: 8px 11px;
+  border: 1px solid #344579;
+  border-radius: 30px;
+  color: #c5d1f6;
+  background: rgba(13,23,53,.85);
+  font-size: 10px;
+  line-height: 1.3;
+  cursor: pointer;
+}
+
+.example-chip:hover {
+  border-color: #8276d8;
+}
+
+
+
+.section-heading {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  margin-bottom: 20px;
+}
+
+.heading-icon {
+  width: 43px;
+  height: 43px;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  border: 1px solid rgba(137,120,255,.55);
+  border-radius: 50%;
+  color: #d0b5ff;
+  background: rgba(111,75,236,.13);
+  box-shadow: 0 0 20px rgba(105,79,255,.12);
+  font-size: 24px;
+}
+
+.section-heading h2 {
+  margin: 0 0 5px;
+  color: #f2f3ff;
+  font-size: 15px;
+  font-weight: 800;
+}
+
+.section-heading p {
+  margin: 0;
+  color: #91a1cc;
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+
+
+.answer-content {
+  min-height: 80px;
+  padding: 17px;
+  border: 1px solid rgba(114,126,230,.2);
+  border-radius: 13px;
+  color: #d4def9;
+  background: linear-gradient(
+    140deg,
+    rgba(15,26,61,.88),
+    rgba(9,17,41,.95)
+  );
+  font-size: 14px;
+  line-height: 1.85;
+  overflow-wrap: anywhere;
+  white-space: pre-wrap;
+  animation: answerAppear .35s ease-out;
+}
+
+@keyframes answerAppear {
+  from {
+    opacity: .65;
+    transform: translateY(5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+
+
+.history-icon {
+  color: #62dfff;
+  border-color: rgba(76,211,255,.45);
+  background: rgba(35,140,219,.1);
+}
+
+.history-list {
+  display: grid;
+  gap: 9px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.history-list li {
+  padding: 13px 14px;
+  border: 1px solid rgba(116,139,221,.2);
+  border-radius: 11px;
+  color: #c7d3f4;
+  background: rgba(8,17,41,.8);
+  font-size: 13px;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+  transition: border-color .2s, background .2s, transform .2s;
+}
+
+.history-list li:hover {
+  border-color: rgba(158,117,255,.5);
+  background: rgba(19,29,65,.9);
+  transform: translateX(2px);
+}
+
+.history-list li::before {
+  content: "↗";
+  margin-right: 10px;
+  color: #ac88ff;
+}
+
+
+
+footer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 22px 0 10px;
+  color: #7584ad;
+  font-size: 11px;
+  line-height: 1.7;
+  text-align: center;
+}
+
+.footer-mark {
+  color: #b58aff;
+  font-size: 18px;
+}
+
+.footer-divider {
+  color: #485b8b;
+}
+
+
+
+@media (max-width: 600px) {
+  .topbar {
+    margin: 12px 12px 0;
+    padding: 14px 15px;
+    border-radius: 16px;
+  }
+
+  .brand {
+    gap: 10px;
+    font-size: 18px;
+  }
+
+  .brand-icon {
+    width: 38px;
+    height: 38px;
+    border-radius: 12px;
+  }
+
+  .main-content {
+    padding: 42px 15px 25px;
+  }
+
+  .hero {
+    margin-bottom: 28px;
+  }
+
+  .hero h1 {
+    margin-top: 22px;
+    font-size: clamp(30px,8vw,42px);
+    letter-spacing: -1.3px;
+  }
+
+  .hero p {
+    max-width: 340px;
+    font-size: 13px;
+  }
+
+  .search-card,
+  .answer-card,
+  .history-card {
+    padding: 19px;
+    border-radius: 17px;
+  }
+
+  .input-wrapper {
+    gap: 9px;
+    padding: 0 11px;
+  }
+
+  .input-wrapper input {
+    padding: 16px 0;
+    font-size: 13px;
+  }
+
+  .button-row {
+    gap: 9px;
+  }
+
+  .search-button,
+  .clear-button {
+    min-height: 46px;
+    padding: 0 13px;
+  }
+
+  .quick-examples {
+    gap: 7px;
+  }
+
+  .section-heading {
+    gap: 11px;
+  }
+
+  .heading-icon {
+    width: 39px;
+    height: 39px;
+  }
+
+  .answer-content {
+    padding: 14px;
+    font-size: 13px;
+  }
+}
+
+@media (max-width: 360px) {
+  .main-content {
+    padding-right: 11px;
+    padding-left: 11px;
+  }
+
+  .search-card,
+  .answer-card,
+  .history-card {
+    padding: 15px;
+  }
+
+  .hero h1 {
+    font-size: 30px;
+    letter-spacing: -1px;
+  }
+
+  .hero-badge {
+    padding: 9px 10px;
+    font-size: 9px;
+    letter-spacing: .7px;
+  }
+
+  .button-row {
+    gap: 7px;
+  }
+
+  .search-button,
+  .clear-button {
+    padding: 0 10px;
+    font-size: 12px;
+  }
+
+  .quick-examples {
+    gap: 6px;
+  }
+
+  .example-chip {
+    padding: 7px 9px;
+    font-size: 9px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+  }
+}
+
+    
+  </style>
+</head>
+<body>
+  
+<div class="app">
+  <header class="topbar">
+    <div class="brand">
+      <div class="brand-icon">✦</div>
+      <span>AI Search</span>
+    </div>
+    <span class="version">BETA</span>
+  </header>
+
+  <main class="main-content">
+    <section class="hero">
+      <div class="hero-badge">
+        <span class="status-dot"></span>
+        YOUR SMART SEARCH SPACE
+      </div>
+
+      <h1>
+        Ask anything.<br />
+        <span>Calculate everything.</span>
+      </h1>
+
+      <p>
+        Search for answers, explore coding topics,
+        or solve calculations instantly.
+      </p>
+    </section>
+
+    <section class="search-card">
+      <label for="question">What would you like to know?</label>
+
+      <form id="searchForm">
+        <div class="input-wrapper">
+          <span class="search-icon">⌕</span>
+          <input
+            type="text"
+            id="question"
+            placeholder="Ask a question or try 10 + 20"
+            autocomplete="off"
+          />
+        </div>
+
+        <div class="button-row">
+          <button type="submit" class="search-button">
+            <span>Search</span>
+            <span>→</span>
+          </button>
+
+          <button
+            type="button"
+            id="clearButton"
+            class="clear-button"
+          >
+            Clear
+          </button>
+        </div>
+      </form>
+
+      <div class="quick-examples">
+        <span>TRY:</span>
+        <span class="example-chip">10 + 20</span>
+        <span class="example-chip">What is AI?</span>
+        <span class="example-chip">What is Python?</span>
+      </div>
+    </section>
+
+    <section class="answer-card">
+      <div class="section-heading">
+        <div class="heading-icon">✧</div>
+        <div>
+          <h2>Answer</h2>
+          <p>Your results appear here</p>
+        </div>
+      </div>
+
+      <div
+        id="answer"
+        class="answer-content"
+        aria-live="polite"
+      >
+        Your answer will appear here.
+      </div>
+    </section>
+
+    <section class="history-card">
+      <div class="section-heading">
+        <div class="heading-icon history-icon">↺</div>
+        <div>
+          <h2>Recent searches</h2>
+          <p>Your latest five searches</p>
+        </div>
+      </div>
+
+      <ul id="searchHistory" class="history-list"></ul>
+    </section>
+
+    <footer>
+      <span class="footer-mark">✦</span>
+      AI Search <span class="footer-divider">·</span>
+      Built to make searching simple.
+    </footer>
+  </main>
+</div>
+
+
+  <script>
+    
+const knowledgeBase = [
+  {
+    question: "hello",
+    answer: "Hello! Welcome to AI Search."
+  },
+  {
+    question: "ai",
+    answer: "AI enables computers to perform tasks that usually require human intelligence."
+  },
+  {
+    question: "who created you",
+    answer: "Kapil created me."
+  },
+  {
+    question: "coding",
+    answer: "Coding means writing instructions that tell a computer what to do."
+  },
+  {
+    question: "website",
+    answer: "A website is a collection of web pages that people can access through a browser."
+  },
+  {
+    question: "javascript",
+    answer: "JavaScript is a programming language used to make websites interactive."
+  },
+  {
+    question: "python",
+    answer: "Python is a programming language used for automation, data analysis, AI, and backend development."
+  },
+  {
+    question: "hi",
+    answer: "Hi! Welcome to AI Search."
+  }
+];
+
+const recentSearches = [];
+
+function calculateExpression(expression) {
+  const input = expression.replace(/\s+/g, "");
+
+  if (!input || !/^[0-9+\-*/().]+$/.test(input)) {
+    return null;
+  }
+
+  let position = 0;
+
+  function parseExpression() {
+    let value = parseTerm();
+
+    while (
+      input[position] === "+" ||
+      input[position] === "-"
+    ) {
+      const operator = input[position++];
+      const right = parseTerm();
+
+      value = operator === "+"
+        ? value + right
+        : value - right;
+    }
+
+    return value;
+  }
+
+  function parseTerm() {
+    let value = parseFactor();
+
+    while (
+      input[position] === "*" ||
+      input[position] === "/"
+    ) {
+      const operator = input[position++];
+      const right = parseFactor();
+
+      if (operator === "/" && right === 0) {
+        throw new Error("Cannot divide by zero.");
+      }
+
+      value = operator === "*"
+        ? value * right
+        : value / right;
+    }
+
+    return value;
+  }
+
+  function parseFactor() {
+    if (input[position] === "+") {
+      position++;
+      return parseFactor();
+    }
+
+    if (input[position] === "-") {
+      position++;
+      return -parseFactor();
+    }
+
+    if (input[position] === "(") {
+      position++;
+
+      const value = parseExpression();
+
+      if (input[position] !== ")") {
+        throw new Error("Missing closing parenthesis.");
+      }
+
+      position++;
+      return value;
+    }
+
+    const remaining = input.slice(position);
+    const match = remaining.match(/^(?:\d+\.?\d*|\.\d+)/);
+
+    if (!match) {
+      throw new Error("Invalid calculation.");
+    }
+
+    position += match[0].length;
+    return Number(match[0]);
+  }
+
+  try {
+    const result = parseExpression();
+
+    if (position !== input.length || !Number.isFinite(result)) {
+      return null;
+    }
+
+    return String(Number(result.toPrecision(12)));
+  } catch (error) {
+    if (error.message === "Cannot divide by zero.") {
+      return error.message;
+    }
+
+    return null;
+  }
+}
+
+function answerQuestion(question) {
+  const cleanQuestion = question
+    .toLowerCase()
+    .trim()
+    .replace(/[?!.,]/g, "");
+
+  if (/^[\d\s.+\-*/()]+$/.test(question)) {
+    const result = calculateExpression(question);
+
+    if (result !== null) {
+      return "Result: " + result;
+    }
+  }
+
+  for (let i = 0; i < knowledgeBase.length; i++) {
+    if (cleanQuestion.includes(knowledgeBase[i].question)) {
+      return knowledgeBase[i].answer;
+    }
+  }
+
+  return "Sorry, I don't know the answer yet. Try asking about AI, coding, JavaScript, websites, or Python.";
+}
+
+function updateSearchHistory() {
+  const historyList = document.getElementById("searchHistory");
+
+  historyList.textContent = "";
+
+  for (let i = 0; i < recentSearches.length; i++) {
+    const item = document.createElement("li");
+
+    item.textContent = recentSearches[i];
+    historyList.appendChild(item);
+  }
+}
+
+document.getElementById("searchForm").addEventListener("submit", function(event) {
+  event.preventDefault();
+
+  const questionInput = document.getElementById("question");
+  const answer = document.getElementById("answer");
+  const question = questionInput.value.trim();
+
+  if (question === "") {
+    answer.textContent = "Please type a question first.";
+    return;
+  }
+
+  answer.textContent = answerQuestion(question);
+
+  recentSearches.unshift(question);
+
+  if (recentSearches.length > 5) {
+    recentSearches.pop();
+  }
+
+  updateSearchHistory();
+});
+
+document.getElementById("clearButton").addEventListener("click", function() {
+  document.getElementById("question").value = "";
+  document.getElementById("answer").textContent =
+    "Your answer will appear here.";
+});
+
+// Make the example chips fill the search box.
+document.querySelectorAll(".example-chip").forEach(function(chip) {
+  chip.addEventListener("click", function() {
+    const questionInput = document.getElementById("question");
+
+    questionInput.value = chip.textContent.trim();
+    questionInput.focus();
+  });
+});
+
+    
+  </script>
+  
+</body>
+</html>
